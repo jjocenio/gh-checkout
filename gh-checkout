@@ -22,14 +22,17 @@ check_local_branch() {
 }
 
 check_remote_branch() {
-	$(git fetch -q origin ${branch}:${branch}) && git checkout ${branch} && exit 0
+	$(git fetch -q origin ${branch}:${branch} 2> /dev/null) && git checkout ${branch} && exit 0
   echo "No remote branch found"
 }
 
 create_branch() {
-	local default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+	local default_branch=$(git symbolic-ref -q refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
   echo "Creating new local branch of ${default_branch}"
-  git checkout ${default_branch} && git pull && git checkout -b ${branch} 
+  if [[ ! -z ${default_branch} ]]; then
+    git checkout ${default_branch} && git pull 
+  fi
+  git checkout -b ${branch} 
 }
 
 branch=
