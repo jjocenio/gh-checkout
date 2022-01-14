@@ -28,7 +28,7 @@ check_remote_branch() {
 
 create_branch() {
 	local default_branch=$(git symbolic-ref -q refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-  echo "Creating new local branch of ${default_branch}"
+  echo "Creating new local branch of ${default_branch:-default}"
   if [[ ! -z ${default_branch} ]]; then
     git checkout ${default_branch} && git pull 
   fi
