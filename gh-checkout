@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e
+
+help() {
+  cat <<EOF
+Usage: gh checkout <branch-name>
+
+Switch to the given branch. If it does not exist locally, it will be fetch from remote/origin. 
+If it doesn't exist in origin, it will be created from the default branch 
+(THIS WILL PERFORM A GIT PULL ON THE DEFAULT BRANCH).
+EOF
+}
+
+check_local_branch() {
+	local count=$(git branch | grep -cw ${branch})
+  if [[ $count -eq 1 ]]; then
+		git checkout ${branch}
+    exit 0
+	fi
+  echo "No local branch found"
+}
+
+check_remote_branch() {
+	$(git fetch -q origin ${branch}:${branch}) && git checkout ${branch} && exit 0
+  echo "No remote branch found"
+}
+
+create_branch() {
+	local default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+  echo "Creating new local branch of ${default_branch}"
+  git checkout ${default_branch} && git pull && git checkout -b ${branch} 
+}
+
+branch=
+while [ $# -gt 0 ]; do
+  case "$1" in
+  -h|--help)
+    help
+    exit 0
+    ;;
+  *)
+    branch=$1
+	  ;;
+  esac
+  shift
+done
+
+if [[ -z $branch ]]; then
+  echo "You must specify the branch name"
+  help
+  exit 1
+fi	
+
+check_local_branch
+check_remote_branch
+create_branch
